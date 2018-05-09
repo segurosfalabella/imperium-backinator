@@ -6,7 +6,7 @@ Feature: Create consul backup
   Scenario: Get snapshot from consul
     Given an endpoint
     When I call get snapshot
-    Then I get snapshot backup file
+    Then I get snapshot backup file named "backup.tgz"
 
   Scenario: Upload snapshot to cloud storage
     Given an snapshot
