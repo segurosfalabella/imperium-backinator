@@ -9,6 +9,6 @@ Feature: Create consul backup
     Then I get snapshot backup file named "backup.tgz"
 
   Scenario: Upload snapshot to cloud storage
-    Given an snapshot
+    Given an snapshot backup file named "backup.tgz"
     When I call cloud storage endpoint
     Then I put backup file in cloud storage

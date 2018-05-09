@@ -47,10 +47,6 @@ func iGetSnapshotBackupFileNamed(fileName string) error {
 	return errors.New("there is no file named " + fileName)
 }
 
-func anSnapshot() error {
-	return godog.ErrPending
-}
-
 func iCallCloudStorageEndpoint() error {
 	return godog.ErrPending
 }
@@ -63,7 +59,7 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^an endpoint$`, anEndpoint)
 	s.Step(`^I call get snapshot$`, iCallGetSnapshot)
 	s.Step(`^I get snapshot backup file named "([^"]*)"$`, iGetSnapshotBackupFileNamed)
-	s.Step(`^an snapshot$`, anSnapshot)
+	s.Step(`^an snapshot backup file named "([^"]*)"$`, iGetSnapshotBackupFileNamed)
 	s.Step(`^I call cloud storage endpoint$`, iCallCloudStorageEndpoint)
 	s.Step(`^I put backup file in cloud storage$`, iPutBackupFileInCloudStorage)
 }
