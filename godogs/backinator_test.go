@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/DATA-DOG/godog"
-	"github.com/segurosfalabella/imperium-backinator-consul/app"
+	"github.com/segurosfalabella/imperium-backinator/app"
 )
 
 var endpoint = "http://localhost:7700"
