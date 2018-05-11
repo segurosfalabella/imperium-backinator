@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/segurosfalabella/imperium-backinator-consul/app"
+	"github.com/segurosfalabella/imperium-backinator/app"
 )
 
 var endpoint = flag.String("endpoint", "http://consul-v2.tools.segurosfalabella.cloud", "Consul API endpoint")
