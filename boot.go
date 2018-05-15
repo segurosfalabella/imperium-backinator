@@ -1,18 +1,22 @@
 package main
 
 import (
-    "flag"
-    "fmt"
-    maria "github.com/segurosfalabella/imperium-backinator/binary-maria"
-    mysql "github.com/segurosfalabella/imperium-backinator/binary-mysql"
+	"flag"
+
+	"github.com/segurosfalabella/imperium-backinator/consul"
 )
 
-var endpoint = flag.String("endpoint", "http://consul-v2.tools.segurosfalabella.cloud", "Consul API endpoint")
+var source = flag.String("source", "consul", "Source server to backup")
+var endpoint = flag.String("endpoint", "", "Consul API endpoint")
 var token = flag.String("token", "", "Consul admin token")
 
 func main() {
-    fmt.Println(maria.AssetNames())
-    fmt.Println(mysql.AssetNames())
-    // flag.Parse()
-    // app.Backup(*endpoint, *token)
+	flag.Parse()
+	if *source == "consul" {
+		consul.Backup(*endpoint, *token)
+	}
+
+	if *source == "postgres" {
+		consul.Backup(*endpoint, *token)
+	}
 }
