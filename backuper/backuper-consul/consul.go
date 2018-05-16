@@ -48,7 +48,7 @@ func (cb *Backuper) Backup() error {
 	buf.ReadFrom(response.Body)
 	newStr := buf.String()
 
-	file, err := OsCreate("backup.tgz")
+	file, err := OsCreate("../../backup-bucket/backup.tgz")
 	defer file.Close()
 	if err != nil {
 		return errors.New("could not create backup file")
