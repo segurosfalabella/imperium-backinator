@@ -2,8 +2,13 @@ package consul
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
 	"regexp"
 )
+
+//HttpRequest var
+var HttpRequest = http.NewRequest
 
 //Backuper struct
 type Backuper struct {
@@ -21,16 +26,31 @@ func (cb *Backuper) Backup() error {
 		return errors.New("token is required")
 	}
 
-	// queryOptions := &api.QueryOptions{
-	// 	Token: cb.Token,
-	// }
-	//
-	// config := &api.Config{
-	// 	Address: cb.Endpoint,
-	// }
-	//
-	// fmt
+	request, err := HttpRequest("GET", cb.Endpoint+"/v1/snapshot", nil)
+
+	if err != nil {
+		return errors.New("could not create new request")
+	}
+
+	request.Header.Set("X-Consul-Token", cb.Token)
+	client := &http.Client{}
+	response, err := DoRequest(client, request)
+
+	if err != nil {
+		return err
+	}
+	fmt.Println(response.Body)
 	return nil
+}
+
+//ClientInterface interface
+type ClientInterface interface {
+	Do(request *http.Request) (*http.Response, error)
+}
+
+//DoRequest function
+var DoRequest = func(client ClientInterface, request *http.Request) (*http.Response, error) {
+	return client.Do(request)
 }
 
 //ValidateEndpoint ...
