@@ -1,11 +1,15 @@
 package consul
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 )
+
+//OsCreate var
+var OsCreate = os.Create
 
 //HttpRequest var
 var HttpRequest = http.NewRequest
@@ -39,7 +43,17 @@ func (cb *Backuper) Backup() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(response.Body)
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	newStr := buf.String()
+
+	file, err := OsCreate("backup.tgz")
+	defer file.Close()
+	if err != nil {
+		return errors.New("could not create backup file")
+	}
+	file.WriteString(newStr)
 	return nil
 }
 

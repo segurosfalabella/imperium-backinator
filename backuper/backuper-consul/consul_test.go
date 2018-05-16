@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"testing"
 
 	consul "github.com/segurosfalabella/imperium-backinator/backuper/backuper-consul"
@@ -101,22 +102,20 @@ func TestShouldReturnErrorNotNilWhenDoFuncFail(t *testing.T) {
 	assert.NotNil(t, response)
 }
 
-// func TestShouldNotReturnErrorWhenNewHttpRequestSuccess(t *testing.T) {
-// 	var endpoint = "http://www.google.com"
-// 	var token = "demo-token"
-// 	consulInstance := consul.Backuper{
-// 		Endpoint: endpoint,
-// 		Token:    token,
-// 	}
-// 	var oldRequest = consul.HttpRequest
-// 	defer func() {
-// 		consul.HttpRequest = oldRequest
-// 	}()
-// 	consul.HttpRequest = func(method string, url string, body io.Reader) (*http.Request, error) {
-// 		return new(http.Request), nil
-// 	}
-//
-// 	err := consulInstance.Backup()
-//
-// 	assert.Nil(t, err)
-// }
+func TestShouldReturnErrorNotNilWhenOsCreateFunctionFail(t *testing.T) {
+	consulInstance := consul.Backuper{
+		Endpoint: endpoint,
+		Token:    badToken,
+	}
+	var oldOsCreate = consul.OsCreate
+	defer func() {
+		consul.OsCreate = oldOsCreate
+	}()
+	consul.OsCreate = func(name string) (*os.File, error) {
+		return nil, errors.New("could not create backup file")
+	}
+
+	err := consulInstance.Backup()
+
+	assert.NotNil(t, err)
+}
