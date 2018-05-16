@@ -3,36 +3,31 @@ package consul_test
 import (
 	"errors"
 	"io"
+	"net/http"
+	"os"
 	"testing"
 
-	"github.com/hashicorp/consul/api"
 	consul "github.com/segurosfalabella/imperium-backinator/backuper/backuper-consul"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
+var badEndpoint = "hola mundo"
+var endpoint = "http://www.google.com"
+var badToken = "demo-token"
+
 type mockClient struct {
 	mock.Mock
 }
 
-type mockSnapshot struct {
-	c *mockClient
+func (client *mockClient) Do(request *http.Request) (*http.Response, error) {
+	args := client.Called(request)
+	return args.Get(0).(*http.Response), args.Error(1)
 }
 
-// Snapshot returns a handle that exposes the snapshot endpoints.
-func (c *mockClient) Snapshot() *consul.MySnapshot {
-	return &consul.MySnapshot{}
-}
-
-func (s *mockSnapshot) Save(q *api.QueryOptions) (io.ReadCloser, *api.QueryMeta, error) {
-	err := errors.New("could not save snapshot")
-	return nil, nil, err
-}
-
-func TestShouldReturnErrorWhenEndpointIsNotValid(t *testing.T) {
-	var endpoint = "hola mundo"
-	consul := &consul.Backuper{
-		Endpoint: endpoint,
+func TestShouldReturnErrorWhenCanNotValidateEndpoint(t *testing.T) {
+	consul := consul.Backuper{
+		Endpoint: badEndpoint,
 	}
 
 	err := consul.Backup()
@@ -41,10 +36,8 @@ func TestShouldReturnErrorWhenEndpointIsNotValid(t *testing.T) {
 }
 
 func TestShouldReturnErrorWhenTokenIsNotDefined(t *testing.T) {
-	var token = ""
-	var endpoint = "http://www.google.com"
 	consul := &consul.Backuper{
-		Token:    token,
+		Token:    "",
 		Endpoint: endpoint,
 	}
 
@@ -54,75 +47,75 @@ func TestShouldReturnErrorWhenTokenIsNotDefined(t *testing.T) {
 }
 
 func TestShouldValidateMethodReturnTrueWhenEndpointIsValid(t *testing.T) {
-	var endpoint = "http://www.google.com"
-
 	state := consul.ValidateEndpoint(endpoint)
 
 	assert.True(t, state)
 }
 
 func TestShoudlValidateMethodReturnFalseWhenEndpointIsInvalid(t *testing.T) {
-	var endpoint = "hola mundo"
-
-	state := consul.ValidateEndpoint(endpoint)
+	state := consul.ValidateEndpoint(badEndpoint)
 
 	assert.False(t, state)
 }
 
-func TestShoudlReturnErrorWhenCallNewClientFail(t *testing.T) {
-	var endpoint = "http://www.google.com"
-	var token = "token-demo"
-	consulInstance := &consul.Backuper{
+func TestShouldReturnErrorWhenNewHttpRequestFail(t *testing.T) {
+	consulInstance := consul.Backuper{
 		Endpoint: endpoint,
-		Token:    token,
+		Token:    badToken,
 	}
-	var oldApi = consul.API
-	defer func() { consul.API = oldApi }()
-	consul.API = func(config *api.Config) (*api.Client, error) {
-		return nil, errors.New("could not create new client")
+	var oldRequest = consul.HttpRequest
+	defer func() {
+		consul.HttpRequest = oldRequest
+	}()
+	consul.HttpRequest = func(method string, url string, body io.Reader) (*http.Request, error) {
+		return nil, errors.New("could not create new request")
 	}
 
 	err := consulInstance.Backup()
 
 	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "could not create new client")
 }
 
-// func TestShouldReturnNilWhenSnapshotFail(t *testing.T) {
-// 	var token = "token-demo"
-// 	options := &api.QueryOptions{
-// 		Token: token,
-// 	}
-// 	client := new(mockClient)
-// 	result := consul.SaveSnapshot(client, options)
-//
-// 	assert.NotNil(t, result)
-// }
+func TestShouldReturnErrorWhenDoRequestReturnError(t *testing.T) {
+	consulInstance := consul.Backuper{
+		Endpoint: endpoint,
+		Token:    badToken,
+	}
+	var oldRequest = consul.DoRequest
+	defer func() {
+		consul.DoRequest = oldRequest
+	}()
+	consul.DoRequest = func(client consul.ClientInterface, request *http.Request) (*http.Response, error) {
+		return new(http.Response), errors.New("could not execute request")
+	}
+	err := consulInstance.Backup()
 
-// func TestShouldReturnErrorWhenSnapshotSaveFail(t *testing.T) {
-// 	var endpoint = "http://www.google.com"
-// 	var token = "token-demo"
-// 	consulInstance := &consul.Backuper{
-// 		Endpoint: endpoint,
-// 		Token:    token,
-// 	}
-//
-// }
+	assert.NotNil(t, err)
+}
 
-// func TestShouldReturnErrorWhenOsCreateFile(t *testing.T) {
-// 	var endpoint = "http://www.google.com"
-// 	var token = "token-string"
-// 	consulInstance := &consul.Backuper{
-// 		Endpoint: endpoint,
-// 		Token:    token,
-// 	}
-// 	var oldFunc = consul.OsCreate
-// 	defer func() { consul.OsCreate = oldFunc }()
-// 	consul.OsCreate = func(name string) (*os.File, error) {
-// 		return nil, errors.New("could not create backup file")
-// 	}
-//
-// 	err := consulInstance.Backup()
-//
-// 	assert.NotNil(t, err)
-// }
+func TestShouldReturnErrorNotNilWhenDoFuncFail(t *testing.T) {
+	client := new(mockClient)
+	client.On("Do", new(http.Request)).Return(new(http.Response), errors.New("could not execute action"))
+	response, err := consul.DoRequest(client, new(http.Request))
+
+	assert.NotNil(t, err)
+	assert.NotNil(t, response)
+}
+
+func TestShouldReturnErrorNotNilWhenOsCreateFunctionFail(t *testing.T) {
+	consulInstance := consul.Backuper{
+		Endpoint: endpoint,
+		Token:    badToken,
+	}
+	var oldOsCreate = consul.OsCreate
+	defer func() {
+		consul.OsCreate = oldOsCreate
+	}()
+	consul.OsCreate = func(name string) (*os.File, error) {
+		return nil, errors.New("could not create backup file")
+	}
+
+	err := consulInstance.Backup()
+
+	assert.NotNil(t, err)
+}
