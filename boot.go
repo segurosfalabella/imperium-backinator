@@ -13,10 +13,11 @@ var token = flag.String("token", "", "Consul admin token")
 func main() {
 	flag.Parse()
 	if *source == "consul" {
-		consul := consul.Backuper{Endpoint: *endpoint, Token: *token}
-		consul.Backup()
+		consulBackuper := consul.Backuper{Endpoint: *endpoint, Token: *token}
+		consulBackuper.Backup()
 	}
 
 	if *source == "postgres" {
+
 	}
 }

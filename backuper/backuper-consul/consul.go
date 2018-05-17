@@ -13,6 +13,7 @@ var OsCreate = os.Create
 
 //HttpRequest var
 var HttpRequest = http.NewRequest
+var LOCAL_STORAGE_PATH = "../../backup-bucket/backup.tgz"
 
 //Backuper struct
 type Backuper struct {
@@ -30,7 +31,7 @@ func (cb *Backuper) Backup() error {
 		return errors.New("token is required")
 	}
 
-	request, err := HttpRequest("GET", cb.Endpoint+"/v1/snapshot", nil)
+	request, err := HttpRequest("GET", cb.Endpoint, nil)
 
 	if err != nil {
 		return errors.New("could not create new request")
@@ -48,13 +49,13 @@ func (cb *Backuper) Backup() error {
 	buf.ReadFrom(response.Body)
 	newStr := buf.String()
 
-	file, err := OsCreate("../../backup-bucket/backup.tgz")
+	file, err := OsCreate(LOCAL_STORAGE_PATH)
 	defer file.Close()
 	if err != nil {
 		return errors.New("could not create backup file")
 	}
-	file.WriteString(newStr)
-	return nil
+	_, err = file.WriteString(newStr)
+	return err
 }
 
 //ClientInterface interface
