@@ -20,7 +20,7 @@ func aSourceEqualsToConsulAndEndpointAndToken(source, endpoint, token string) er
 }
 
 func consulBackuperIsExecuted() error {
-	consulDriver.Backuper()
+	consulDriver.Backup()
 	return nil
 }
 

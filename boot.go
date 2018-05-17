@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/segurosfalabella/imperium-backinator/consul"
+	consul "github.com/segurosfalabella/imperium-backinator/backuper/backuper-consul"
 )
 
 var source = flag.String("source", "consul", "Source server to backup")
@@ -13,10 +13,10 @@ var token = flag.String("token", "", "Consul admin token")
 func main() {
 	flag.Parse()
 	if *source == "consul" {
-		consul.Backup(*endpoint, *token)
+		consul := consul.Backuper{Endpoint: *endpoint, Token: *token}
+		consul.Backup()
 	}
 
 	if *source == "postgres" {
-		consul.Backup(*endpoint, *token)
 	}
 }

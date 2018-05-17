@@ -1,6 +1,6 @@
 package drivers
 
-import "github.com/segurosfalabella/imperium-backinator/consul"
+import consul "github.com/segurosfalabella/imperium-backinator/backuper/backuper-consul"
 
 // ConsulDriver ...
 type ConsulDriver struct {
@@ -8,8 +8,8 @@ type ConsulDriver struct {
 	Token    string
 }
 
-// Backuper ...
-func (cd *ConsulDriver) Backuper() {
-	consul.Backup(cd.Endpoint, cd.Token)
-
+// Backup ...
+func (cd *ConsulDriver) Backup() {
+	consul := consul.Backuper{Endpoint: cd.Endpoint, Token: cd.Token}
+	consul.Backup()
 }
