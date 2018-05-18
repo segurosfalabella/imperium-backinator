@@ -3,9 +3,11 @@ package consul
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"regexp"
+	"time"
 )
 
 //OsCreate var
@@ -13,7 +15,9 @@ var OsCreate = os.Create
 
 //HttpRequest var
 var HttpRequest = http.NewRequest
-var LOCAL_STORAGE_PATH = "../../backup-bucket/backup.tgz"
+var dtm = time.Now()
+var dateString = fmt.Sprintf("%d-%d-%d-%d-%d", dtm.Year(), dtm.Month(), dtm.Day(), dtm.Hour(), dtm.Minute())
+var LOCAL_STORAGE_PATH = fmt.Sprintf("/home/backup-bucket/backup-consul-%s.tgz", dateString)
 
 //Backuper struct
 type Backuper struct {
